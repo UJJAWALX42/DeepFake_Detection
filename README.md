@@ -83,8 +83,8 @@ To set up this project locally, follow the steps below:
 
 1. **Clone the repository**:
     ```bash
-    git clone https://github.com/yourusername/deepfake-detection-system.git
-    cd deepfake-detection-system
+    git clone https://github.com/yourusername/DeepFake_Detection.git
+    cd DeepFake_detection
     ```
 
 2. **Set up a virtual environment**:
