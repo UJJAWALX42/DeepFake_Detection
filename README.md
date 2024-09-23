@@ -1,171 +1,144 @@
-## DeepFake Detection (DFDC) Solution by @selimsef
+# DeepFake Detection System
 
-## Challenge details:
+## Table of Contents
+- [Project Overview](#project-overview)
+- [Features](#features)
+- [Technologies Used](#technologies-used)
+- [System Architecture](#system-architecture)
+- [Setup and Installation](#setup-and-installation)
+- [Usage](#usage)
+- [Future Improvements](#future-improvements)
+- [Contributing](#contributing)
+- [License](#license)
 
-[Kaggle Challenge Page](https://www.kaggle.com/c/deepfake-detection-challenge)
+## Project Overview
+The **DeepFake Detection System** is an advanced machine learning solution designed to detect and mitigate deepfake media content in real time. This project focuses on ensuring public safety and cybersecurity by providing an easy-to-use system capable of analyzing various forms of media, including video, audio, and images. It delivers high accuracy in identifying deepfakes and generates reports for end users, including cybersecurity professionals, content moderators, and law enforcement.
 
+The model is trained on the DFDC (Deepfake Detection Challenge) dataset and integrates into a web-based platform, with a robust backend capable of handling media analysis requests.
 
-### Fake detection articles  
-- [The Deepfake Detection Challenge (DFDC) Preview Dataset](https://arxiv.org/abs/1910.08854)
-- [Deep Fake Image Detection Based on Pairwise Learning](https://www.mdpi.com/2076-3417/10/1/370)
-- [DeeperForensics-1.0: A Large-Scale Dataset for Real-World Face Forgery Detection](https://arxiv.org/abs/2001.03024)
-- [DeepFakes and Beyond: A Survey of Face Manipulation and Fake Detection](https://arxiv.org/abs/2001.00179)
-- [Real or Fake? Spoofing State-Of-The-Art Face Synthesis Detection Systems](https://arxiv.org/abs/1911.05351)
-- [CNN-generated images are surprisingly easy to spot... for now](https://arxiv.org/abs/1912.11035)
-- [FakeSpotter: A Simple yet Robust Baseline for Spotting AI-Synthesized Fake Faces](https://arxiv.org/abs/1909.06122)
-- [FakeLocator: Robust Localization of GAN-Based Face Manipulations via Semantic Segmentation Networks with Bells and Whistles](https://arxiv.org/abs/2001.09598)
-- [Media Forensics and DeepFakes: an overview](https://arxiv.org/abs/2001.06564)
-- [Face X-ray for More General Face Forgery Detection](https://arxiv.org/abs/1912.13458)
+## Features
+- **Accurate Detection**: Uses advanced machine learning models to detect deepfakes with high accuracy.
+- **Real-time Processing**: Capable of processing media content in real or near real-time.
+- **User-Friendly Interface**: Designed for ease of use with an intuitive web interface.
+- **Detailed Reporting**: Provides comprehensive reports on detected deepfakes, including confidence scores and details of the manipulations.
+- **Scalability**: Built to scale across different platforms (e.g., social media, government agencies).
+- **Compliance**: Adheres to ethical guidelines and legal standards.
 
-## Solution description 
-In general solution is based on frame-by-frame classification approach. Other complex things did not work so well on public leaderboard.
+## Technologies Used
+This project leverages several technologies for different components of the system:
 
-#### Face-Detector
-MTCNN detector is chosen due to kernel time limits. It would be better to use S3FD detector as more precise and robust, but opensource Pytorch implementations don't have a license. 
+- **Machine Learning Frameworks**:
+  - PyTorch
+  - TensorFlow
+  - Scikit-learn
+  
+- **Backend**:
+  - Flask
+  - Python
+  - REST APIs
+  
+- **Frontend**:
+  - HTML5
+  - CSS3
+  - JavaScript
+  - Bootstrap
+  
+- **Database**:
+  - DynamoDB (for storing media files and results)
+  
+- **Cloud & Hosting**:
+  - AWS Elastic Beanstalk (for deploying the Flask application)
+  - AWS S3 (for storing media files)
+  
+- **Other Tools**:
+  - OpenCV (for media processing)
+  - FFmpeg (for video/audio manipulation)
 
-Input size for face detector was calculated for each video depending on video resolution.
+## System Architecture
+The architecture follows a modular approach to ensure scalability and performance:
 
-- 2x scale for videos with less than 300 pixels wider side
-- no rescale for videos with wider side between 300 and 1000
-- 0.5x scale for videos with wider side > 1000 pixels
-- 0.33x scale for videos with wider side > 1900 pixels
+1. **Frontend**:
+   - The user interacts with the system via a web interface where they can upload media files for analysis.
+  
+2. **Backend**:
+   - The backend is built using Flask, which processes incoming media files, invokes the machine learning model, and returns the results to the user.
+   
+3. **Model**:
+   - The deepfake detection model is hosted on the server. It performs media analysis and outputs a confidence score indicating whether the media is real or manipulated.
+   
+4. **Database**:
+   - Results, including media files and detection data, are stored in a DynamoDB database for further analysis and reporting.
 
-### Input size
-As soon as I discovered that EfficientNets significantly outperform other encoders I used only them in my solution.
-As I started with B4 I decided to use "native" size for that network (380x380).
-Due to memory costraints I did not increase input size even for B7 encoder.
+![System Architecture Diagram](path-to-architecture-diagram.png)
 
-### Margin
-When I generated crops for training I added 30% of face crop size from each side and used only this setting during the competition. 
-See [extract_crops.py](preprocessing/extract_crops.py) for the details
+## Setup and Installation
 
-### Encoders
-The winning encoder is current state-of-the-art model (EfficientNet B7) pretrained with ImageNet and noisy student [Self-training with Noisy Student improves ImageNet classification
-](https://arxiv.org/abs/1911.04252)
+To set up this project locally, follow the steps below:
 
-### Averaging predictions
-I used 32 frames for each video.
-For each model output instead of simple averaging I used the following heuristic which worked quite well on public leaderbord (0.25 -> 0.22 solo B5).
-```python
-import numpy as np
+### Prerequisites
+- Python 3.8 or higher
+- Flask
+- AWS account (for S3 and Elastic Beanstalk)
+- FFmpeg (for media processing)
 
-def confident_strategy(pred, t=0.8):
-    pred = np.array(pred)
-    sz = len(pred)
-    fakes = np.count_nonzero(pred > t)
-    # 11 frames are detected as fakes with high probability
-    if fakes > sz // 2.5 and fakes > 11:
-        return np.mean(pred[pred > t])
-    elif np.count_nonzero(pred < 0.2) > 0.9 * sz:
-        return np.mean(pred[pred < 0.2])
-    else:
-        return np.mean(pred)
-```
+### Installation
 
-### Augmentations
+1. **Clone the repository**:
+    ```bash
+    git clone https://github.com/yourusername/deepfake-detection-system.git
+    cd deepfake-detection-system
+    ```
 
-I used heavy augmentations by default. 
-[Albumentations](https://github.com/albumentations-team/albumentations) library supports most of the augmentations out of the box. Only needed to add IsotropicResize augmentation.
-```
+2. **Set up a virtual environment**:
+    ```bash
+    python3 -m venv venv
+    source venv/bin/activate
+    ```
 
-def create_train_transforms(size=300):
-    return Compose([
-        ImageCompression(quality_lower=60, quality_upper=100, p=0.5),
-        GaussNoise(p=0.1),
-        GaussianBlur(blur_limit=3, p=0.05),
-        HorizontalFlip(),
-        OneOf([
-            IsotropicResize(max_side=size, interpolation_down=cv2.INTER_AREA, interpolation_up=cv2.INTER_CUBIC),
-            IsotropicResize(max_side=size, interpolation_down=cv2.INTER_AREA, interpolation_up=cv2.INTER_LINEAR),
-            IsotropicResize(max_side=size, interpolation_down=cv2.INTER_LINEAR, interpolation_up=cv2.INTER_LINEAR),
-        ], p=1),
-        PadIfNeeded(min_height=size, min_width=size, border_mode=cv2.BORDER_CONSTANT),
-        OneOf([RandomBrightnessContrast(), FancyPCA(), HueSaturationValue()], p=0.7),
-        ToGray(p=0.2),
-        ShiftScaleRotate(shift_limit=0.1, scale_limit=0.2, rotate_limit=10, border_mode=cv2.BORDER_CONSTANT, p=0.5),
-    ]
-    )
-``` 
-In addition to these augmentations I wanted to achieve better generalization with 
-- Cutout like augmentations (dropping artefacts and parts of face)
-- Dropout part of the image, inspired by [GridMask](https://arxiv.org/abs/2001.04086) and [Severstal Winning Solution](https://www.kaggle.com/c/severstal-steel-defect-detection/discussion/114254) 
+3. **Install dependencies**:
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-![augmentations](images/augmentations.jpg "Dropout augmentations")
+4. **Configure AWS services**:
+    - Set up your AWS credentials for S3 and Elastic Beanstalk.
+    - Create necessary S3 buckets for media storage.
 
-## Building docker image
-All libraries and enviroment is already configured with Dockerfile. It requires docker engine https://docs.docker.com/engine/install/ubuntu/ and  nvidia docker in your system https://github.com/NVIDIA/nvidia-docker.
+5. **Run the application**:
+    ```bash
+    flask run
+    ```
 
-To build a docker image run `docker build -t df .`
+6. **Access the application**:
+    Open your browser and navigate to `http://127.0.0.1:5000/` to access the web interface.
 
-## Running docker 
-`docker run --runtime=nvidia --ipc=host --rm  --volume <DATA_ROOT>:/dataset -it df`
+## Usage
 
-## Data preparation
+1. **Upload Media**:
+   - Open the application, navigate to the upload section, and submit a media file (video, audio, or image).
+   
+2. **Processing**:
+   - The media is analyzed by the deepfake detection model in real-time, and the result is displayed after processing.
 
-Once DFDC dataset is downloaded all the scripts expect to have `dfdc_train_xxx` folders under data root directory. 
+3. **View Results**:
+   - The results include a confidence score along with detailed insights into the manipulation, if any.
+   
+4. **Reports**:
+   - A downloadable report will be available for each media file analyzed.
 
-Preprocessing is done in a single script **`preprocess_data.sh`** which requires dataset directory as first argument. 
-It will execute the steps below:  
+## Future Improvements
+Some possible enhancements for the system include:
+- **Improved Real-time Processing**: Optimize the current system to reduce processing latency further.
+- **Multi-language Support**: Add language options to make the interface more accessible.
+- **Expanded Dataset Training**: Retrain the model on larger datasets to improve detection accuracy across a wider range of media formats.
+- **Mobile Compatibility**: Develop a mobile app version of the system.
 
-##### 1. Find face bboxes
-To extract face bboxes I used facenet library, basically only MTCNN. 
-`python preprocessing/detect_original_faces.py --root-dir DATA_ROOT`
-This script will detect faces in real videos and store them as jsons in DATA_ROOT/bboxes directory
+## Contributing
+Contributions are welcome! Please follow the steps below to contribute:
 
-##### 2. Extract crops from videos
-To extract image crops I used bboxes saved before. It will use bounding boxes from original videos for face videos as well.
-`python preprocessing/extract_crops.py --root-dir DATA_ROOT --crops-dir crops`
-This script will extract face crops from videos and save them in DATA_ROOT/crops directory
- 
-##### 3. Generate landmarks
-From the saved crops it is quite fast to process crops with MTCNN and extract landmarks  
-`python preprocessing/generate_landmarks.py --root-dir DATA_ROOT`
-This script will extract landmarks and save them in DATA_ROOT/landmarks directory
- 
-##### 4. Generate diff SSIM masks
-`python preprocessing/generate_diffs.py --root-dir DATA_ROOT`
-This script will extract SSIM difference masks between real and fake images and save them in DATA_ROOT/diffs directory
-
-##### 5. Generate folds
-`python preprocessing/generate_folds.py --root-dir DATA_ROOT --out folds.csv`
-By default it will use 16 splits to have 0-2 folders as a holdout set. Though only 400 videos can be used for validation as well. 
-
-
-## Training
-
-Training 5 B7 models with different seeds is done in **`train.sh`** script.
-
-During training checkpoints are saved for every epoch.
-
-## Hardware requirements
-Mostly trained on devbox configuration with 4xTitan V, thanks to Nvidia and DSB2018 competition where I got these gpus https://www.kaggle.com/c/data-science-bowl-2018/
- 
-Overall training requires 4 GPUs with 12gb+ memory. 
-Batch size needs to be adjusted for standard 1080Ti or 2080Ti graphic cards.
-
-As I computed fake loss and real loss separately inside each batch, results might be better with larger batch size, for example on V100 gpus. 
-Even though SyncBN is used larger batch on each GPU will lead to less noise as DFDC dataset has some fakes where face detector failed and face crops are not really fakes.   
-
-## Plotting losses to select checkpoints
-
-`python plot_loss.py --log-file logs/<log file>`
-
-![loss plot](images/loss_plot.png "Weighted loss")
-
-## Inference
-
-
-Kernel is reproduced with `predict_folder.py` script.
-
-
-## Pretrained models  
-`download_weights.sh` script will download trained models to `weights/` folder. They should be downloaded before building a docker image.
- 
-Ensemble inference is already preconfigured with `predict_submission.sh` bash script. It expects a directory with videos as first argument and an output csv file as second argument.
- 
-For example `./predict_submission.sh /mnt/datasets/deepfake/test_videos submission.csv`  
-
-
-
-
+1. Fork the repository.
+2. Create a new branch (`git checkout -b feature-branch`).
+3. Make your changes and commit them (`git commit -m "Added new feature"`).
+4. Push the changes to your branch (`git push origin feature-branch`).
+5. Open a Pull Request.
 
