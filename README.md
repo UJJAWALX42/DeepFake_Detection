@@ -9,7 +9,6 @@
 - [Usage](#usage)
 - [Future Improvements](#future-improvements)
 - [Contributing](#contributing)
-- [License](#license)
 
 ## Project Overview
 The **DeepFake Detection System** is an advanced machine learning solution designed to detect and mitigate deepfake media content in real time. This project focuses on ensuring public safety and cybersecurity by providing an easy-to-use system capable of analyzing various forms of media, including video, audio, and images. It delivers high accuracy in identifying deepfakes and generates reports for end users, including cybersecurity professionals, content moderators, and law enforcement.
@@ -44,9 +43,9 @@ This project leverages several technologies for different components of the syst
   - Bootstrap
   
 - **Database**:
-  - DynamoDB (for storing media files and results)
+  - DynamoDB (optional, for storing media files and results)
   
-- **Cloud & Hosting**:
+- **Cloud & Hosting** (optional):
   - AWS Elastic Beanstalk (for deploying the Flask application)
   - AWS S3 (for storing media files)
   
@@ -66,8 +65,8 @@ The architecture follows a modular approach to ensure scalability and performanc
 3. **Model**:
    - The deepfake detection model is hosted on the server. It performs media analysis and outputs a confidence score indicating whether the media is real or manipulated.
    
-4. **Database**:
-   - Results, including media files and detection data, are stored in a DynamoDB database for further analysis and reporting.
+4. **Database** (optional):
+   - Results, including media files and detection data, can be stored in a DynamoDB database for further analysis and reporting.
 
 ![System Architecture Diagram](path-to-architecture-diagram.png)
 
@@ -78,7 +77,6 @@ To set up this project locally, follow the steps below:
 ### Prerequisites
 - Python 3.8 or higher
 - Flask
-- AWS account (for S3 and Elastic Beanstalk)
 - FFmpeg (for media processing)
 
 ### Installation
@@ -100,9 +98,9 @@ To set up this project locally, follow the steps below:
     pip install -r requirements.txt
     ```
 
-4. **Configure AWS services**:
-    - Set up your AWS credentials for S3 and Elastic Beanstalk.
-    - Create necessary S3 buckets for media storage.
+4. **Optional: Configure AWS services**:
+    - You can set up AWS S3 for media storage and AWS Elastic Beanstalk for deployment, but this is optional.
+    - If you choose to configure AWS services, set up your AWS credentials for S3 and Elastic Beanstalk and create the necessary S3 buckets.
 
 5. **Run the application**:
     ```bash
@@ -141,4 +139,3 @@ Contributions are welcome! Please follow the steps below to contribute:
 3. Make your changes and commit them (`git commit -m "Added new feature"`).
 4. Push the changes to your branch (`git push origin feature-branch`).
 5. Open a Pull Request.
-
