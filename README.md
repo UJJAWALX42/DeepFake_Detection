@@ -4,7 +4,6 @@
 - [Project Overview](#project-overview)
 - [Features](#features)
 - [Technologies Used](#technologies-used)
-- [System Architecture](#system-architecture)
 - [Setup and Installation](#setup-and-installation)
 - [Usage](#usage)
 - [Future Improvements](#future-improvements)
@@ -68,7 +67,6 @@ The architecture follows a modular approach to ensure scalability and performanc
 4. **Database** (optional):
    - Results, including media files and detection data, can be stored in a DynamoDB database for further analysis and reporting.
 
-![System Architecture Diagram](path-to-architecture-diagram.png)
 
 ## Setup and Installation
 
